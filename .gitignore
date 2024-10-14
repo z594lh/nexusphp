@@ -27,3 +27,8 @@ yarn-error.log
 .DS_Store
 /plugins
 auth.json
+.env.example
+config/allconfig.php
+config/nexus.php
+public/.htaccess
+public/nginx.htaccess
