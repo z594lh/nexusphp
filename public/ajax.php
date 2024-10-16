@@ -19,6 +19,20 @@ try {
     exit(json_encode(fail($exception->getMessage(), $_POST)));
 }
 
+function buyMedal($params)
+{
+    global $CURUSER;
+    $rep = new \App\Repositories\BonusRepository();
+    return $rep->consumeToBuyMedal($CURUSER['id'], $params['medal_id']);
+}
+
+function giftMedal($params)
+{
+    global $CURUSER;
+    $rep = new \App\Repositories\BonusRepository();
+    return $rep->consumeToGiftMedal($CURUSER['id'], $params['medal_id'], $params['uid']);
+}
+
 function toggleUserMedalStatus($params)
 {
     global $CURUSER;

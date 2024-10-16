@@ -15,7 +15,7 @@ class Medal extends NexusModel
         self::GET_TYPE_GRANT => ['text' => 'Grant'],
     ];
 
-    protected $fillable = ['name', 'description', 'image_large', 'image_small', 'price', 'duration', 'get_type'];
+    protected $fillable = ['name', 'description', 'image_large', 'image_small', 'price', 'duration', 'get_type', 'bonus', 'purchase_start', 'purchase_end','stock'];
 
     public $timestamps = true;
 
@@ -49,6 +49,23 @@ class Medal extends NexusModel
         return $this->users()->where(function ($query) {
             $query->whereNull('user_medals.expire_at')->orWhere('user_medals.expire_at', '>=', Carbon::now());
         });
+    }
+
+    public function checkCanBeBuy()
+    {
+        if ($this->get_type == self::GET_TYPE_GRANT) {
+            throw new \RuntimeException(nexus_trans('medal.grant_only'));
+        }
+        $now = now();
+        $purchaseStart = $this->purchase_start ? Carbon::parse($this->purchase_start) : null;
+        $purchaseEnd = $this->purchase_end ? Carbon::parse($this->purchase_end) : null;
+
+        if (($purchaseStart && $purchaseStart->gt($now)) || ($purchaseEnd && $purchaseEnd->lt($now))) {
+            throw new \RuntimeException(nexus_trans('medal.purchase_start'));
+        }
+        if ($this->stock !== null && $this->stock <= 0) {
+            throw new \RuntimeException(nexus_trans('medal.stock'));
+        }
     }
 
 }

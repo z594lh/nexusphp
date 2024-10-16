@@ -4,6 +4,7 @@ namespace App\Repositories;
 use App\Models\BonusLogs;
 use App\Models\HitAndRun;
 use App\Models\Medal;
+use App\Models\Message;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\UserMedal;
@@ -68,6 +69,69 @@ class BonusRepository extends BaseRepository
                 $expireAt = Carbon::now()->addDays($medal->duration)->toDateTimeString();
             }
             $user->medals()->attach([$medal->id => ['expire_at' => $expireAt, 'status' => UserMedal::STATUS_NOT_WEARING]]);
+
+        });
+
+        return true;
+
+    }
+
+    public function consumeToGiftMedal($uid, $medalId, $toUid): bool
+    {
+        $user = User::query()->findOrFail($uid);
+        $toUser = User::query()->findOrFail($toUid);
+        $medal = Medal::query()->findOrFail($medalId);
+        $exists = $toUser->valid_medals()->where('medal_id', $medalId)->exists();
+        do_log(last_query());
+        if ($exists) {
+            throw new \LogicException("user: $toUid already own this medal: $medalId.");
+        }
+        $medal->checkCanBeBuy();
+        $bonusTaxpercentage = \App\Models\Setting::query()->where('id', 198)->value('value');
+        $requireBonus = ceil($medal->price/(1-$bonusTaxpercentage/100));
+        $giftFee = ceil( $requireBonus - $medal->price);
+        NexusDB::transaction(function () use ($user, $toUser, $medal, $requireBonus, $giftFee) {
+            $comment = nexus_trans('bonus.comment_gift_medal', [
+                'bonus' => $requireBonus,
+                'medal_name' => $medal->name,
+                'to_username' => $toUser->username,
+            ], $user->locale);
+            do_log("comment: $comment");
+            $this->consumeUserBonus($user, $requireBonus, BonusLogs::BUSINESS_TYPE_GIFT_MEDAL, "$comment(medal ID: {$medal->id})");
+
+            $expireAt = null;
+            if ($medal->duration > 0) {
+                $expireAt = Carbon::now()->addDays($medal->duration)->toDateTimeString();
+            }else{
+                $expireAt = '永久';
+            }
+            $msg = [
+                'sender' => 0,
+                'receiver' => $toUser->id,
+                'subject' => nexus_trans('message.receive_medal.subject', [], $toUser->locale),
+                'msg' => nexus_trans('message.receive_medal.body', [
+                    'username' => $user->username,
+                    'cost_bonus' => $requireBonus,
+                    'medal_name' => $medal->name,
+                    'price' => $medal->price,
+                    'gift_fee_total' => $giftFee,
+                    'expire_at' => $expireAt ?? nexus_trans('label.permanent'),
+                    'bonus' => $medal->bonus ?? 0,
+                ], $toUser->locale),
+                'added' => now()
+            ];
+            Message::add($msg);
+            $toUser->medals()->attach([$medal->id => ['expire_at' => $expireAt, 'status' => UserMedal::STATUS_NOT_WEARING]]);
+            if ($medal->stock !== null) {
+                $affectedRows = NexusDB::table('medals')
+                    ->where('id', $medal->id)
+                    ->where('stock', $medal->stock)
+                    ->decrement('stock')
+                ;
+                if ($affectedRows != 1) {
+                    throw new \RuntimeException("Decrement medal({$medal->id}) stock affected rows != 1($affectedRows)");
+                }
+            }
 
         });
 

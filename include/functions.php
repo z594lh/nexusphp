@@ -5739,7 +5739,17 @@ function calculate_seed_bonus($uid, $torrentIdArr = null): array
         $all_bonus = $all_bonus * $donortimes_bonus;
         $log .= ", do multiple, all_bonus: $all_bonus";
     }
-    $result = compact('seed_points','seed_bonus', 'all_bonus', 'A', 'count', 'torrent_peer_count');
+    /*勋章加成*/
+    $medalssql = "select a.* ,b.bonus,b.duration from user_medals a left join medals b on a.medal_id = b.id where a.uid = ".$uid;
+    $userMedalList = Nexus\Database\NexusDB::select($medalssql);
+    $medalBonusTotal = 0;
+    foreach ($userMedalList as $k => $v){
+        if((!$v['expire_at'] || strtotime($v['expire_at']) - time()>0) && $v['bonus']>0){
+            $medalBonusTotal+=$v['bonus'];
+        }
+    }
+
+    $result = compact('seed_points','seed_bonus', 'all_bonus', 'A', 'count', 'torrent_peer_count','medalBonusTotal');
     do_log("$log, result: " . json_encode($result));
     return $result;
 }
@@ -5760,5 +5770,24 @@ function calculate_harem_addition($uid)
     do_log("[HAREM_ADDITION], user: $uid, haremsCount: $haremsCount ,addition: $addition");
     return $addition;
 }
+
+function calculate_harem_addition_info($uid)
+{
+    $harems = \App\Models\User::query()
+        ->where('invited_by', $uid)
+        ->where('status', \App\Models\User::STATUS_CONFIRMED)
+        ->where('enabled', \App\Models\User::ENABLED_YES)
+        ->get(['id']);
+    $addition = 0;
+    $haremsCount = $harems->count();
+    foreach ($harems as $harem) {
+        $result = calculate_seed_bonus($harem->id);
+        $addition += $result['all_bonus'];
+    }
+    do_log("[HAREM_ADDITION], user: $uid, haremsCount: $haremsCount ,addition: $addition");
+    $result = compact('addition','haremsCount');
+    return $result;
+}
+
 
 ?>

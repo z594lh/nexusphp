@@ -19,4 +19,8 @@ return [
         'subject' => '下载权限恢复',
         'body' => '你的下载权限恢复，你现在可以下载种子。By: :operator',
     ],
+    'receive_medal' => [
+        'subject' => '收到赠送勋章',
+        'body' => '用户 :username 花费魔力 :cost_bonus 购买了勋章[:medal_name]并赠送与你。此勋章价值 :price，手续费 :gift_fee_total，你将拥有此勋章有效期至: :expire_at，勋章的魔力加成系数为: :bonus。',
+    ],
 ];

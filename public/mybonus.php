@@ -419,10 +419,14 @@ print("</ul>");
 
 $seedBonusResult = calculate_seed_bonus($CURUSER['id']);
 $all_bonus = $seedBonusResult['all_bonus'];
+$factor = get_setting('bonus.harem_addition');
+$addition = calculate_harem_addition_info($CURUSER['id']);
+$totalBonus = number_format($all_bonus*(1+$seedBonusResult['medalBonusTotal']/100) + $addition['addition'] * $factor, 3);
+
 $A = $seedBonusResult['A'];
 
 		$percent = $all_bonus * 100 / ($bzero_bonus + $perseeding_bonus * $maxseeding_bonus);
-	print("<div align=\"center\">".$lang_mybonus['text_you_are_currently_getting'].round($all_bonus,3).$lang_mybonus['text_point'].add_s($all_bonus).$lang_mybonus['text_per_hour']." (A = ".round($A,1).")</div><table align=\"center\" border=\"0\" width=\"400\"><tr><td class=\"loadbarbg\" style='border: none; padding: 0px;'>");
+	print("<div align=\"center\">".$lang_mybonus['text_you_are_currently_getting'].round($totalBonus,3).$lang_mybonus['text_point'].add_s($all_bonus).$lang_mybonus['text_per_hour']." (A = ".round($A,1).")</div><table align=\"center\" border=\"0\" width=\"400\"><tr><td class=\"loadbarbg\" style='border: none; padding: 0px;'>");
 
 	if ($percent <= 30) $loadpic = "loadbarred";
 	elseif ($percent <= 60) $loadpic = "loadbaryellow";
@@ -430,13 +434,11 @@ $A = $seedBonusResult['A'];
 	$width = $percent * 4;
 	print("<img class=\"".$loadpic."\" src=\"pic/trans.gif\" style=\"width: ".$width."px;\" alt=\"".$percent."%\" /></td></tr></table>");
 
-$factor = get_setting('bonus.harem_addition');
-$addition = calculate_harem_addition($CURUSER['id']);
-$totalBonus = number_format($all_bonus + $addition * $factor, 3);
+
 $summaryTable = '<table cellspacing="4" cellpadding="4" style="width: 50%"><tbody>';
 $summaryTable .= '<tr style="font-weight: bold"><td>'.$lang_mybonus['reward_type'].'</td><td>'.$lang_mybonus['bonus_base'].'</td><td>'.$lang_mybonus['addition'].'</td><td>'.$lang_mybonus['got_bonus'].'</td><td>'.$lang_mybonus['total'].'</td></tr>';
 $summaryTable .= sprintf(
-    '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td rowspan="2">%s</td></tr>',
+    '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td rowspan="3">%s</td></tr>',
     $lang_mybonus['reward_type_basic'],
     round($all_bonus,3),
     '-',
@@ -447,11 +449,22 @@ if ($factor > 0) {
     $summaryTable .= sprintf(
         '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
         $lang_mybonus['reward_type_harem_addition'],
-        number_format($addition, 3),
-        number_format($factor * 100, 2) . '%',
-        number_format($addition * $factor, 3)
+        number_format($addition['addition'], 3),
+        number_format($factor * 100, 2)*$addition['haremsCount'] . '%',
+        number_format($addition['addition'] * $factor, 3)
     );
 }
+
+//勋章加成
+$summaryTable .= sprintf(
+    '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
+    $lang_mybonus['bonus_medal'],
+    round($all_bonus,3),
+    $seedBonusResult['medalBonusTotal'].'%',
+    number_format($addition['addition'] * $factor, 3)
+);
+
+
 $summaryTable .= '</tbody></table>';
 
 print '<div style="display: flex;justify-content: center;margin-top: 20px;">'.$summaryTable.'</div>';

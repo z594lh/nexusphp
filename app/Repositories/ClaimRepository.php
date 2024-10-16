@@ -196,12 +196,16 @@ class ClaimRepository extends BaseRepository
             }
         }
         $bonusResult = calculate_seed_bonus($uid, $reachedTorrentIdArr);
+        /*后宫加成*/
+        $addition = calculate_harem_addition($uid);
+        $factor = get_setting('bonus.harem_addition');
+        $bonusHaremTotal = $addition * $factor;
         $seedTimeHoursAvg = $totalSeedTime / (count($reachedTorrentIdArr) ?: 1) / 3600;
         do_log(sprintf(
             "reachedTorrentIdArr: %s, unReachedIdArr: %s, bonusResult: %s, seedTimeHours: %s",
             json_encode($reachedTorrentIdArr), json_encode($unReachedIdArr), json_encode($bonusResult), $seedTimeHoursAvg
         ), 'alert');
-        $bonusFinal = $bonusResult['seed_bonus'] * $seedTimeHoursAvg * $bonusMultiplier;
+        $bonusFinal = ($bonusResult['all_bonus'] * (1+$bonusResult['medalBonusTotal']/100) * $seedTimeHoursAvg * $bonusMultiplier)+$bonusHaremTotal;
         do_log("bonus final: $bonusFinal", 'alert');
 
         $totalDeduct = $bonusDeduct * count($unReachedIdArr);
