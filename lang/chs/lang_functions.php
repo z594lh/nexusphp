@@ -80,6 +80,7 @@ $lang_functions = array
 	'text_logout' => "退出",
 	'text_bonus' => "魔力值 ",
 	'text_use' => "使用",
+	'text_medal' => "勋章",
 	'text_ratio' => "分享率：",
 	'text_uploaded' => "上传量：",
 	'text_downloaded' => "下载量：",
