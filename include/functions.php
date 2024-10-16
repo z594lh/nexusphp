@@ -5742,6 +5742,7 @@ function calculate_seed_bonus($uid, $torrentIdArr = null): array
     /*勋章加成*/
     $medalssql = "select a.* ,b.bonus,b.duration from user_medals a left join medals b on a.medal_id = b.id where a.uid = ".$uid;
     $userMedalList = Nexus\Database\NexusDB::select($medalssql);
+    var_dump($userMedalList);exit;
     $medalBonusTotal = 0;
     if($userMedalList && is_array($userMedalList) && count($userMedalList)>0){
         foreach ($userMedalList as $k => $v){
