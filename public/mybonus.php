@@ -461,7 +461,7 @@ $summaryTable .= sprintf(
     $lang_mybonus['bonus_medal'],
     round($all_bonus,3),
     $seedBonusResult['medalBonusTotal'].'%',
-    number_format($addition['addition'] * $factor, 3)
+    number_format($all_bonus*($seedBonusResult['medalBonusTotal']/100), 3)
 );
 
 
