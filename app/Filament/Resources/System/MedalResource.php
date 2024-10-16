@@ -53,6 +53,26 @@ class MedalResource extends Resource
                     ->label(__('label.medal.duration'))
                     ->helperText(__('label.medal.duration_help')),
                 Forms\Components\Textarea::make('description')->columnSpan(['sm' => 2])->label(__('label.description')),
+                // 新增字段：bonus
+                Forms\Components\TextInput::make('bonus')
+                    ->maxLength(255)
+                    ->label(__('label.medal.bonus'))
+                    ->helperText(__('label.medal.bonus_help')),
+                // 新增字段：stock
+                Forms\Components\TextInput::make('stock')
+                    ->integer()
+                    ->label(__('label.medal.stock')),
+
+                // 新增字段：purchase_start
+                Forms\Components\DatePicker::make('purchase_start')
+                    ->label(__('label.medal.purchase_start'))
+                    ->nullable(), // 如果允许为空，则使用 nullable()，否则不需要
+
+                // 新增字段：purchase_end
+                Forms\Components\DatePicker::make('purchase_end')
+                    ->label(__('label.medal.purchase_end'))
+                    ->nullable(), // 如果允许为空，则使用 nullable()，否则不需要
+
             ]);
     }
 
@@ -67,6 +87,7 @@ class MedalResource extends Resource
                 Tables\Columns\TextColumn::make('getTypeText')->label('Get type')->label(__('label.medal.get_type')),
                 Tables\Columns\TextColumn::make('price')->label(__('label.price')),
                 Tables\Columns\TextColumn::make('duration')->label(__('label.medal.duration')),
+                Tables\Columns\TextColumn::make('bonus')->label(__('label.medal.bonus')),
             ])
             ->defaultSort('id', 'desc')
             ->filters([

@@ -94,6 +94,11 @@ return [
         'get_type' => '获取方式',
         'duration' => '有效时长',
         'duration_help' => '单位：天。如果留空，用户永久拥有',
+        'bonus' => '勋章加成',
+        'bonus_help' => '10代表加成0.1',
+        'stock' => '库存',
+        'purchase_start' => '购买起点',
+        'purchase_end' => '购买终点',
     ],
     'user_medal' => [
         'label' => '用户勋章',
